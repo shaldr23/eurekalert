@@ -12,3 +12,8 @@ def sort_journals(journals_file):
     journals_text = '\n'.join(journals)
     with open(journals_file, 'w') as f:
         f.write(journals_text)
+
+
+if __name__ == '__main__':
+    sort_journals('journals.txt')
+    print('Journals sorting done!')
