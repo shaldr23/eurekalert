@@ -1,4 +1,16 @@
+ACS Nano
+Alzheimers & Dementia
+BMJ
+BMJ - British Medical Journal
 Cell
+Cell Metabolism
+Cell Research
+Cell Stem Cell
+Circulation
+Immunity
+JAMA
+JAMA: The Journal of the American Medical Association
+Molecular Cell
 Nature
 Nature Biomedical Engineering
 Nature Biotechnology
@@ -10,8 +22,11 @@ Nature Metabolism
 Nature Microbiology
 Nature Nanotechnology
 Nature Neuroscience
+Neuron
 Proceedings of the National Academy of Sciences
 Science
+Science Immunology
 Science Translational Medicine
+The BMJ
 The Lancet
 The New England Journal of Medicine
