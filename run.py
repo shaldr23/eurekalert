@@ -62,7 +62,7 @@ def similar_to_any_element(cell: str, elements: list,
 
 
 FROM_DATE = datetime.date.today()
-DAYS = 2
+DAYS = 20
 JOURNAL_SIMILARITY_THRESHOLD = .9
 basic_url = 'https://www.eurekalert.org/news-releases/browse/all'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -99,5 +99,5 @@ is_good_journal = journal_column_lower.apply(similar_to_any_element,
 big_frame = big_frame[is_good_journal]
 big_frame.index = np.arange(1, len(big_frame) + 1)
 print('Filtering by journals done')
-now = datetime.datetime.now().strftime('%d.%m.%Y_%H:%M:%S')
+now = datetime.datetime.now().strftime('%d.%m.%Y_%Hh%Mm%Ss')
 big_frame.to_excel(f'result_{now}.xlsx')
