@@ -5,6 +5,8 @@ import datetime
 import pandas as pd
 import numpy as np
 from journal_tools import get_journals_from_file
+from difflib import SequenceMatcher
+import re
 
 
 def get_text_from_item(item, selector):
@@ -38,8 +40,30 @@ def frame_from_request(req: requests.Request):
     return frame
 
 
+def similarity(a, b, skip_pattern=None):
+    """
+    Levenshtein distance for two strings
+    """
+    if skip_pattern:
+        a = re.sub(skip_pattern, '', a)
+        b = re.sub(skip_pattern, '', b)
+    s = SequenceMatcher(None, a, b)
+    return s.ratio()
+
+
+def similar_to_any_element(cell: str, elements: list,
+                           similarity_threshold: float) -> bool:
+    """
+    Function to use in pd.Series.apply() method
+    """
+    similarities = [similarity(cell, elem) for elem in elements]
+    over_threshold = [sim >= similarity_threshold for sim in similarities]
+    return any(over_threshold)
+
+
 FROM_DATE = datetime.date.today()
-DAYS = 10
+DAYS = 2
+JOURNAL_SIMILARITY_THRESHOLD = .9
 basic_url = 'https://www.eurekalert.org/news-releases/browse/all'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
            'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -69,7 +93,11 @@ print('All pages collected into dataframe')
 journals = get_journals_from_file(journals_file)
 journal_column_lower = big_frame['journal'].str.lower()
 journal_list_lower = [j.lower() for j in journals]
-big_frame = big_frame[journal_column_lower.isin(journal_list_lower)]
+is_good_journal = journal_column_lower.apply(similar_to_any_element,
+                                             args=(journal_list_lower,
+                                                   JOURNAL_SIMILARITY_THRESHOLD))
+big_frame = big_frame[is_good_journal]
 big_frame.index = np.arange(1, len(big_frame) + 1)
 print('Filtering by journals done')
-big_frame.to_excel('result.xlsx')
+now = datetime.datetime.now().strftime('%d.%m.%Y_%H:%M:%S')
+big_frame.to_excel(f'result_{now}.xlsx')
