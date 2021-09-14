@@ -8,6 +8,7 @@ def get_journals_from_file(journals_file):
 
 def sort_journals(journals_file):
     journals = get_journals_from_file(journals_file)
+    journals = list(set(journals))
     journals.sort()
     journals_text = '\n'.join(journals)
     with open(journals_file, 'w') as f:
