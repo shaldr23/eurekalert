@@ -98,6 +98,8 @@ is_good_journal = journal_column_lower.apply(similar_to_any_element,
                                                    JOURNAL_SIMILARITY_THRESHOLD))
 big_frame = big_frame[is_good_journal]
 big_frame.index = np.arange(1, len(big_frame) + 1)
+ordered_columns = ['title', 'journal', 'abstract', 'date', 'page', 'link']
+big_frame = big_frame[ordered_columns]
 print('Filtering by journals done')
 now = datetime.datetime.now().strftime('%d.%m.%Y_%Hh%Mm%Ss')
 big_frame.to_excel(f'result_{now}.xlsx')
