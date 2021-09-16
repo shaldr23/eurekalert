@@ -7,6 +7,9 @@ import numpy as np
 from journal_tools import get_journals_from_file
 from difflib import SequenceMatcher
 import re
+import argparse
+
+# ------------------ Functions ---------------------------------------------
 
 
 def get_text_from_item(item, selector):
@@ -42,7 +45,7 @@ def frame_from_request(req: requests.Request):
 
 def similarity(a, b, skip_pattern=None):
     """
-    Levenshtein distance for two strings
+    Count similarity between two strings
     """
     if skip_pattern:
         a = re.sub(skip_pattern, '', a)
@@ -61,9 +64,30 @@ def similar_to_any_element(cell: str, elements: list,
     return any(over_threshold)
 
 
-FROM_DATE = datetime.date.today()
-DAYS = 20
-JOURNAL_SIMILARITY_THRESHOLD = .9
+# ------------ Command line tool ------------------------------------
+
+description = 'Tool to collect news data from from eurekalert.org'
+parser = argparse.ArgumentParser(description=description)
+parser.add_argument('--days', '-d', type=int, default=5,
+                    help='Number of days related to collected news. Default = 5')
+parser.add_argument('--fromdate', '-f', type=str,
+                    default=datetime.date.today().strftime('%d.%m.%Y'),
+                    help='From which date start parsing. Default - today. '
+                    'Format: dd.mm.yyyy')
+parser.add_argument('--threshold', '-t', type=float, default=.9,
+                    help='Similarity threshold of journal names when compare '
+                    'to those used in journals.txt. Default = 0.9')
+parser.add_argument('--notfilter', '-n', action='store_true',
+                    help='Not to use filtering by journal names')
+args = parser.parse_args()
+
+# ---------------- Main script ----------------------------------------
+
+FROM_DATE = datetime.datetime.strptime(args.fromdate, '%d.%m.%Y')
+DAYS = args.days
+JOURNAL_SIMILARITY_THRESHOLD = args.threshold
+NOT_FILTER = args.notfilter
+
 basic_url = 'https://www.eurekalert.org/news-releases/browse/all'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
            'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -89,17 +113,19 @@ for day in range(DAYS):
     day_print = date.strftime('%d.%m.%Y')
     print(f'{day_print} Done')
 print('All pages collected into dataframe')
-
-journals = get_journals_from_file(journals_file)
-journal_column_lower = big_frame['journal'].str.lower()
-journal_list_lower = [j.lower() for j in journals]
-is_good_journal = journal_column_lower.apply(similar_to_any_element,
-                                             args=(journal_list_lower,
-                                                   JOURNAL_SIMILARITY_THRESHOLD))
-big_frame = big_frame[is_good_journal]
-big_frame.index = np.arange(1, len(big_frame) + 1)
 ordered_columns = ['title', 'journal', 'abstract', 'date', 'page', 'link']
 big_frame = big_frame[ordered_columns]
-print('Filtering by journals done')
+
+if not NOT_FILTER:
+    journals = get_journals_from_file(journals_file)
+    journal_column_lower = big_frame['journal'].str.lower()
+    journal_list_lower = [j.lower() for j in journals]
+    is_good_journal = journal_column_lower.apply(similar_to_any_element,
+                                                args=(journal_list_lower,
+                                                    JOURNAL_SIMILARITY_THRESHOLD))
+    big_frame = big_frame[is_good_journal]
+    print('Filtering by journals done')
+
+big_frame.index = np.arange(1, len(big_frame) + 1)
 now = datetime.datetime.now().strftime('%d.%m.%Y_%Hh%Mm%Ss')
 big_frame.to_excel(f'result_{now}.xlsx')
