@@ -8,6 +8,7 @@ from journal_tools import get_journals_from_file
 from difflib import SequenceMatcher
 import re
 import argparse
+import os
 
 # ------------------ Functions ---------------------------------------------
 
@@ -81,7 +82,7 @@ parser.add_argument('--notfilter', '-n', action='store_true',
                     help='Not to use filtering by journal names')
 args = parser.parse_args()
 
-# ---------------- Main script ----------------------------------------
+# ---------------- Variables ----------------------------------------
 
 FROM_DATE = datetime.datetime.strptime(args.fromdate, '%d.%m.%Y')
 DAYS = args.days
@@ -92,7 +93,12 @@ basic_url = 'https://www.eurekalert.org/news-releases/browse/all'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
            'AppleWebKit/537.36 (KHTML, like Gecko) '
            'Chrome/83.0.4103.61 Safari/537.36'}
-journals_file = 'journals.txt'
+script_dir = os.path.dirname(os.path.abspath(__file__))
+results_dir = os.path.join(script_dir, 'data/results')
+journals_file = os.path.join(script_dir, 'data/source/journals.txt')
+
+# --------------- Main script -------------------------------------
+
 big_frame = pd.DataFrame()
 for day in range(DAYS):
     date = FROM_DATE - datetime.timedelta(days=day)
@@ -128,4 +134,6 @@ if not NOT_FILTER:
 
 big_frame.index = np.arange(1, len(big_frame) + 1)
 now = datetime.datetime.now().strftime('%d.%m.%Y_%Hh%Mm%Ss')
-big_frame.to_excel(f'result_{now}.xlsx')
+result_file = os.path.join(results_dir, f'result_{now}.xlsx')
+big_frame.to_excel(result_file)
+print('Result saved into .../data/results')
