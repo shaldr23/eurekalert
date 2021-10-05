@@ -93,9 +93,10 @@ basic_url = 'https://www.eurekalert.org/news-releases/browse/all'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
            'AppleWebKit/537.36 (KHTML, like Gecko) '
            'Chrome/83.0.4103.61 Safari/537.36'}
-script_dir = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(script_dir, 'data/results')
 journals_file = os.path.join(script_dir, 'data/source/journals.txt')
+ignore_file = os.path.join(script_dir, 'data/source/ignore_journals.txt')
 
 # --------------- Main script -------------------------------------
 
@@ -124,12 +125,14 @@ big_frame = big_frame[ordered_columns]
 
 if not NOT_FILTER:
     journals = get_journals_from_file(journals_file)
+    ignore_journals = get_journals_from_file(ignore_file)
     journal_column_lower = big_frame['journal'].str.lower()
     journal_list_lower = [j.lower() for j in journals]
     is_good_journal = journal_column_lower.apply(similar_to_any_element,
-                                                args=(journal_list_lower,
-                                                    JOURNAL_SIMILARITY_THRESHOLD))
+                                                 args=(journal_list_lower,
+                                                       JOURNAL_SIMILARITY_THRESHOLD))
     big_frame = big_frame[is_good_journal]
+    big_frame = big_frame[~big_frame['journal'].isin(ignore_journals)]
     print('Filtering by journals done')
 
 big_frame.index = np.arange(1, len(big_frame) + 1)

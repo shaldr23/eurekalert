@@ -1,3 +1,6 @@
+import os
+
+
 def get_journals_from_file(journals_file):
     with open(journals_file) as f:
         journals = f.read().split('\n')
@@ -16,5 +19,13 @@ def sort_journals(journals_file):
 
 
 if __name__ == '__main__':
-    sort_journals('journals.txt')
+    """
+    When executed by itself sort records in files
+    journals.txt and ignore_journals.txt
+    """
+    script_dir = os.path.dirname(__file__)
+    journals_file = os.path.join(script_dir, 'data/source/journals.txt')
+    ignore_file = os.path.join(script_dir, 'data/source/ignore_journals.txt')
+    sort_journals(journals_file)
+    sort_journals(ignore_file)
     print('Journals sorting done!')
