@@ -135,6 +135,7 @@ if not NOT_FILTER:
     big_frame = big_frame[~big_frame['journal'].isin(ignore_journals)]
     print('Filtering by journals done')
 
+big_frame.drop_duplicates(subset=['title', 'journal'], inplace=True)
 big_frame.index = np.arange(1, len(big_frame) + 1)
 now = datetime.datetime.now().strftime('%d.%m.%Y_%Hh%Mm%Ss')
 result_file = os.path.join(results_dir, f'result_{now}.xlsx')
