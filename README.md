@@ -13,3 +13,7 @@ optional arguments:
 --threshold THRESHOLD, -t THRESHOLD Similarity threshold of journal names when compare to those used in journals.txt. Default = 0.9
 
 --notfilter, -n Not to use filtering by journal names
+
+--translate, -T Translate titles by yandex.translate (works with problems, better not to use).
+
+*Translation works with help of selenium because web page is dynamic. Nevertheless it's better not to use it*
