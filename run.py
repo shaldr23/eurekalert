@@ -80,6 +80,8 @@ parser.add_argument('--threshold', '-t', type=float, default=.9,
                     'to those used in journals.txt. Default = 0.9')
 parser.add_argument('--notfilter', '-n', action='store_true',
                     help='Not to use filtering by journal names')
+parser.add_argument('--translate', '-T', action='store_true',
+                    help='Translate titles by yandex.translate')
 args = parser.parse_args()
 
 # ---------------- Variables ----------------------------------------
@@ -88,6 +90,7 @@ FROM_DATE = datetime.datetime.strptime(args.fromdate, '%d.%m.%Y')
 DAYS = args.days
 JOURNAL_SIMILARITY_THRESHOLD = args.threshold
 NOT_FILTER = args.notfilter
+TRANSLATE = args.translate
 
 basic_url = 'https://www.eurekalert.org/news-releases/browse/all'
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -137,6 +140,28 @@ if not NOT_FILTER:
 
 big_frame.drop_duplicates(subset=['title', 'journal'], inplace=True)
 big_frame.index = np.arange(1, len(big_frame) + 1)
+
+# ------------ Translation of titles column --------------------------
+
+if TRANSLATE:
+    from translation_tools import translate_collection
+    from selenium import webdriver
+
+    driver_path = os.path.join(script_dir, 'driver/chromedriver.exe')
+    try:
+        browser = webdriver.Chrome(driver_path)
+        browser.implicitly_wait(3)
+        translated = translate_collection(browser, big_frame['title'])
+    except Exception as e:
+        print(e)
+    finally:
+        browser.quit()
+    big_frame['title_rus'] = translated
+    ordered_columns = ['title', 'title_rus', 'journal', 'abstract', 'date', 'page', 'link']
+    big_frame = big_frame[ordered_columns]
+
+# ----------- Saving ------------------------------------------------
+
 now = datetime.datetime.now().strftime('%d.%m.%Y_%Hh%Mm%Ss')
 result_file = os.path.join(results_dir, f'result_{now}.xlsx')
 big_frame.to_excel(result_file)
